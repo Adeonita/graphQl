@@ -9,10 +9,20 @@ type User = {
     vip: boolean
 }
 
+type Product = {
+    name: string,
+    price: number,
+    discount: number,
+    priceWithDiscount?: number //? porque o parâmetro não é obrigatório
+}
+
 /**
  * Defino o tipo do meu resolver
  */
 type MyResolver = {  
+    Product:{
+        priceWithDiscount: (product: Product) => number
+    },
     User:{
         salario: (user: User) => number
     },
@@ -21,6 +31,7 @@ type MyResolver = {
         teste: () => number,
         date: () => Date, 
         user: () => User //User retorna um valor do tipo User
+        product: () => Product
     }
 }
 
@@ -28,6 +39,12 @@ type MyResolver = {
 const typeDefs = gql`
     scalar Date #Novo escalar criado do tipo date
 
+    type Product{ #Criação do tipo produto
+        name: String!
+        price: Float!
+        discount: Float
+        priceWithDiscount: Float
+    }
 
     type User{
         id: ID
@@ -43,12 +60,23 @@ const typeDefs = gql`
         teste: Int
         date: Date
         user: User
+        product: Product #Criação da consulta Produto
     }
 `
 /**
  * A variavel resolver sendo do tipo myResolver
  */
 const resolvers: MyResolver = {
+    Product: {  //Criação do resolver para o preco com desconto
+        priceWithDiscount(product){
+            if(product.discount){
+                //return  product.price - (product.price * product.discount)
+                return product.price * (1 - product.discount)
+            }else{
+                return product.price
+            }
+        },
+    },
     /**
      * Resolver User para resolver a incompatibilidade
      * do atributo salario x salario_liq
@@ -78,6 +106,13 @@ const resolvers: MyResolver = {
                 idade: 23,
                 salario_liq: 1235.67,
                 vip: true
+            }
+        },
+        product(){  //Resolver para o tipo produto
+            return {
+                name: 'Lingerie',
+                price: 100.00,
+                discount: 0.50
             }
         }
 
