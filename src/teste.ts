@@ -16,6 +16,14 @@ type Product = {
     priceWithDiscount?: number //? porque o parâmetro não é obrigatório
 }
 
+//Um array de objetos com tais caracteristicas
+type Usr = {
+    id: number, 
+    nome: string,
+    email: string,
+    idade: number
+}[]  
+
 /**
  * Defino o tipo do meu resolver
  */
@@ -30,12 +38,48 @@ type MyResolver = {
         ola: () => string,
         teste: () => number,
         date: () => Date, 
-        user: () => User //User retorna um valor do tipo User
-        product: () => Product
+        user: () => User, //User retorna um valor do tipo User
+        product: () => Product,
+        numerosMegaSena: () => number[],
+        allUsr: () => Usr, 
+        usuario: (_:{}, {id}: any) => {
+            id: number, 
+            nome: string,
+            email: string,
+            idade: number
+        }
     }
 }
 
+const usr: Usr =
+[
+    {
+        id: 1, 
+        nome: 'Usr1',
+        email: 'usr1@email.com',
+        idade: 12
+    },
+    {
+        id: 2, 
+        nome: 'Usr2',
+        email: 'usr2@email.com',
+        idade: 13
+    },
+    {
+        id: 3, 
+        nome: 'Usr3',
+        email: 'usr3@email.com',
+        idade: 13
+    },
+    {
+        id: 4, 
+        nome: 'Usr4',
+        email: 'usr4@email.com',
+        idade: 14
+    }
 
+                
+]   
 const typeDefs = gql`
     scalar Date #Novo escalar criado do tipo date
 
@@ -55,12 +99,23 @@ const typeDefs = gql`
         vip: Boolean
     }
 
+    type Usr{
+        id: Int, 
+        nome: String,
+        email: String,
+        idade: Int
+    }
+
+    #Ponto de entrada da Api
     type Query {
         ola: String
         teste: Int
         date: Date
         user: User
         product: Product #Criação da consulta Produto
+        numerosMegaSena: [Int!]!
+        allUsr: [Usr]! #Retorna um array de usuarios
+        usuario(id: Int): Usr
     }
 `
 /**
@@ -114,9 +169,23 @@ const resolvers: MyResolver = {
                 price: 100.00,
                 discount: 0.50
             }
-        }
-
-    },
+        },
+        //numerosMegaSena: () => [1,2,3,4,5,6]
+        numerosMegaSena(){
+            const crescente = (a,b) => a -b
+            return Array(6) //Array de 6 posições
+                    .fill(0) //preenchidos cocm 0
+                    .map(n => Math.round(Math.random() * 60 + 1)) //chama a função callback recebida por parâmetro para cada elemento do Array original, em ordem, e constrói um novo array com base nos retornos de cada chamada
+                    .sort(crescente) //Ordena crescente 
+        },
+        allUsr: () => usr, 
+        usuario(_, { id }){
+            console.log(typeof(id))
+            const selected = usr.filter(u => u.id == id )
+            return selected ? selected[0] : null ;
+        },
+    }
+    
 }
 
 const server = new ApolloServer({typeDefs, resolvers})
